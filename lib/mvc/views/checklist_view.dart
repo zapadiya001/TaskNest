@@ -1,7 +1,9 @@
 // views/checklist_view.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:todoapp/mvc/views/section_dropdown.dart';
 import '../controllers/checklist_controller.dart';
+import '../models/checklist_item.dart';
 import 'add_edit_task_view.dart';
 import 'checklist_tile.dart';
 import 'empty_state_widget.dart';
@@ -17,23 +19,19 @@ class ChecklistView extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: _buildAppBar(controller),
-      body: Column(
-        children: [
-          // Progress bar section
-          _buildProgressSection(controller),
-          // Main content area
-          Expanded(
-            child: _buildBody(controller),
-          ),
-        ],
-      ),
+      body: _buildBody(controller),
       floatingActionButton: _buildFloatingActionButton(),
     );
   }
 
   PreferredSizeWidget _buildAppBar(ChecklistController controller) {
     return AppBar(
-      title: Text('My Checklist'),
+      title: Obx(() => SectionDropdown(
+        selectedSection: controller.category, // Current selected category
+        onSectionChanged: (String newSection) {
+          controller.changeCategory(newSection); // Handle category change
+        },
+      )),
       backgroundColor: Colors.blue,
       foregroundColor: Colors.white,
       elevation: 0,
@@ -64,90 +62,6 @@ class ChecklistView extends StatelessWidget {
     );
   }
 
-  Widget _buildProgressSection(ChecklistController controller) {
-    return Obx(() {
-      // Only show progress bar when there are tasks
-      if (controller.items.isEmpty || controller.isLoading.value) {
-        return SizedBox.shrink();
-      }
-
-      final completedCount = _getCompletedCount(controller);
-      final totalCount = controller.items.length;
-      final progressPercentage = (completedCount / totalCount);
-      final progressText = '${(progressPercentage * 100).toInt()}%';
-
-      return Container(
-        width: double.infinity,
-        padding: EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 4,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Progress text and percentage
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Progress',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey[800],
-                  ),
-                ),
-                Text(
-                  progressText,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 8),
-
-            // Progress bar
-            Container(
-              height: 8,
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: LinearProgressIndicator(
-                value: progressPercentage,
-                backgroundColor: Colors.transparent,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  _getProgressColor(progressPercentage),
-                ),
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
-            SizedBox(height: 8),
-
-            // Task count info
-            Text(
-              '$completedCount of $totalCount tasks completed',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
-            ),
-          ],
-        ),
-      );
-    });
-  }
-
   Widget _buildBody(ChecklistController controller) {
     return Obx(() {
       if (controller.isLoading.value) {
@@ -155,7 +69,7 @@ class ChecklistView extends StatelessWidget {
       }
 
       if (controller.items.isEmpty) {
-        return EmptyStateWidget();
+        return _buildEmptyState(controller);
       }
 
       return _buildTasksList(controller);
@@ -177,6 +91,54 @@ class ChecklistView extends StatelessWidget {
               color: Colors.grey[600],
               fontSize: 14,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(ChecklistController controller) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.task_alt,
+            size: 80,
+            color: Colors.grey[300],
+          ),
+          SizedBox(height: 16),
+          Text(
+            controller.selectedCategory.value == TaskCategory.DEFAULT
+                ? 'No tasks yet!'
+                : 'No ${controller.getCategoryDisplayName(controller.selectedCategory.value).toLowerCase()} tasks yet!',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[600],
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Add your first task to get started',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[500],
+            ),
+          ),
+          SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () => _navigateToAddTask(),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            icon: Icon(Icons.add),
+            label: Text('Add Task'),
           ),
         ],
       ),
@@ -222,16 +184,5 @@ class ChecklistView extends StatelessWidget {
 
   int _getCompletedCount(ChecklistController controller) {
     return controller.items.where((item) => item.isCompleted).length;
-  }
-
-  // Helper method to get progress bar color based on completion percentage
-  Color _getProgressColor(double progress) {
-    if (progress >= 0.8) {
-      return Colors.green;  // 80% or more - Green
-    } else if (progress >= 0.5) {
-      return Colors.orange; // 50-79% - Orange
-    } else {
-      return Colors.red;    // Less than 50% - Red
-    }
   }
 }

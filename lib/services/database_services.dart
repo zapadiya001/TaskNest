@@ -37,13 +37,15 @@ class DatabaseService {
   Future<void> _onCreate(Database db, int version) async {
     try {
       await db.execute('''
-        CREATE TABLE checklist_items(
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          title TEXT NOT NULL,
-          isCompleted INTEGER NOT NULL DEFAULT 0,
-          createdAt INTEGER NOT NULL
-        )
-      ''');
+    CREATE TABLE checklist_items(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      isCompleted INTEGER NOT NULL DEFAULT 0,
+      createdAt INTEGER NOT NULL,
+      dueDate INTEGER NULL,
+      category TEXT
+    )
+  ''');
     } catch (e) {
       throw Exception('Failed to create database tables: $e');
     }

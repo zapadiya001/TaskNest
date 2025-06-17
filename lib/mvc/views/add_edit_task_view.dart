@@ -15,6 +15,7 @@ class AddEditTaskView extends StatefulWidget {
 
 class _AddEditTaskViewState extends State<AddEditTaskView> {
   late TextEditingController _titleController;
+  late TaskCategory _selectedCategory;
   final ChecklistController _controller = Get.find<ChecklistController>();
 
   bool get isEditing => widget.taskToEdit != null;
@@ -25,6 +26,9 @@ class _AddEditTaskViewState extends State<AddEditTaskView> {
     _titleController = TextEditingController(
       text: widget.taskToEdit?.title ?? '',
     );
+    // Set default category based on current selection or task being edited
+    _selectedCategory =
+        widget.taskToEdit?.category ?? _controller.selectedCategory.value;
   }
 
   @override
@@ -38,10 +42,8 @@ class _AddEditTaskViewState extends State<AddEditTaskView> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: _buildAppBar(),
-      // KEY CHANGE 1: Set resizeToAvoidBottomInset to true
       resizeToAvoidBottomInset: true,
       body: _buildBody(),
-      // KEY CHANGE 2: Remove bottomNavigationBar and integrate buttons in body
     );
   }
 
@@ -62,7 +64,6 @@ class _AddEditTaskViewState extends State<AddEditTaskView> {
     return SafeArea(
       child: Column(
         children: [
-          // Scrollable content area
           Expanded(
             child: SingleChildScrollView(
               padding: EdgeInsets.all(20),
@@ -73,17 +74,17 @@ class _AddEditTaskViewState extends State<AddEditTaskView> {
                   SizedBox(height: 30),
                   _buildTaskTitleSection(),
                   SizedBox(height: 20),
+                  _buildCategorySection(),
+                  SizedBox(height: 20),
                   if (isEditing) ...[
                     SizedBox(height: 30),
                     _buildTaskInfoSection(),
                   ],
-                  // Add some bottom padding to ensure content is not too close to buttons
                   SizedBox(height: 20),
                 ],
               ),
             ),
           ),
-          // Fixed bottom buttons that stay above keyboard
           _buildBottomButtons(),
         ],
       ),
@@ -184,7 +185,8 @@ class _AddEditTaskViewState extends State<AddEditTaskView> {
               ),
               filled: true,
               fillColor: Colors.white,
-              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16, vertical: 16),
               prefixIcon: Icon(
                 Icons.task_alt,
                 color: Colors.grey[400],
@@ -194,8 +196,72 @@ class _AddEditTaskViewState extends State<AddEditTaskView> {
             maxLines: 2,
             minLines: 1,
             autofocus: !isEditing,
-            // KEY CHANGE 3: Add text input action to show save button on keyboard
             textInputAction: TextInputAction.done,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCategorySection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Category',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey[800],
+          ),
+        ),
+        SizedBox(height: 8),
+        Container(
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: DropdownButton<TaskCategory>(
+            value: _selectedCategory,
+            isExpanded: true,
+            icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[400]),
+            iconSize: 24,
+            elevation: 16,
+            style: TextStyle(color: Colors.grey[800], fontSize: 16),
+            underline: SizedBox(),
+            onChanged: (TaskCategory? newValue) {
+              if (newValue != null) {
+                setState(() {
+                  _selectedCategory = newValue;
+                });
+              }
+            },
+            items: TaskCategory.values.map<DropdownMenuItem<TaskCategory>>((
+                TaskCategory category) {
+              return DropdownMenuItem<TaskCategory>(
+                value: category,
+                child: Row(
+                  children: [
+                    Icon(
+                      _getCategoryIcon(category),
+                      color: _getCategoryColor(category),
+                      size: 20,
+                    ),
+                    SizedBox(width: 12),
+                    Text(_getCategoryDisplayName(category)),
+                  ],
+                ),
+              );
+            }).toList(),
           ),
         ),
       ],
@@ -228,7 +294,11 @@ class _AddEditTaskViewState extends State<AddEditTaskView> {
             ],
           ),
           SizedBox(height: 12),
-          _buildInfoRow('Status', widget.taskToEdit!.isCompleted ? 'Completed' : 'Pending'),
+          _buildInfoRow('Status',
+              widget.taskToEdit!.isCompleted ? 'Completed' : 'Pending'),
+          SizedBox(height: 8),
+          _buildInfoRow(
+              'Category', _getCategoryDisplayName(widget.taskToEdit!.category)),
           SizedBox(height: 8),
           _buildInfoRow('Created', _formatDate(widget.taskToEdit!.createdAt)),
         ],
@@ -264,7 +334,6 @@ class _AddEditTaskViewState extends State<AddEditTaskView> {
     );
   }
 
-  // KEY CHANGE 4: New bottom buttons widget that stays above keyboard
   Widget _buildBottomButtons() {
     return Container(
       padding: EdgeInsets.all(20),
@@ -352,12 +421,18 @@ class _AddEditTaskViewState extends State<AddEditTaskView> {
 
     try {
       if (isEditing) {
-        await _controller.editItem(widget.taskToEdit!, title);
+        await _controller.editItem(
+          widget.taskToEdit!,
+          title,
+          newCategory: _selectedCategory,
+        );
       } else {
-        await _controller.addItem(title);
+        await _controller.addItem(
+          title: title,
+          category: _selectedCategory,
+        );
       }
 
-      // Show success message
       Get.snackbar(
         'Success',
         isEditing ? 'Task updated successfully!' : 'Task added successfully!',
@@ -368,7 +443,6 @@ class _AddEditTaskViewState extends State<AddEditTaskView> {
       );
 
       Get.back(closeOverlays: true);
-
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -382,6 +456,53 @@ class _AddEditTaskViewState extends State<AddEditTaskView> {
   }
 
   String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year} at ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+    return '${date.day}/${date.month}/${date.year} at ${date.hour}:${date.minute
+        .toString().padLeft(2, '0')}';
   }
+
+  String _getCategoryDisplayName(TaskCategory category) {
+    switch (category) {
+      case TaskCategory.DEFAULT:
+        return 'General';
+      case TaskCategory.PERSONAL:
+        return 'Personal';
+      case TaskCategory.WISHLIST:
+        return 'Wishlist';
+      case TaskCategory.WORK:
+        return 'Work';
+      case TaskCategory.SHOPPING:
+        return 'Shopping';
+    }
+  }
+
+  IconData _getCategoryIcon(TaskCategory category) {
+    switch (category) {
+      case TaskCategory.DEFAULT:
+        return Icons.task;
+      case TaskCategory.PERSONAL:
+        return Icons.person;
+      case TaskCategory.WISHLIST:
+        return Icons.favorite;
+      case TaskCategory.WORK:
+        return Icons.work;
+      case TaskCategory.SHOPPING:
+        return Icons.shopping_cart;
+    }
+  }
+
+  Color _getCategoryColor(TaskCategory category) {
+    switch (category) {
+      case TaskCategory.DEFAULT:
+        return Colors.white70;
+      case TaskCategory.PERSONAL:
+        return Colors.white70;
+      case TaskCategory.WISHLIST:
+        return Colors.white70;
+      case TaskCategory.WORK:
+        return Colors.white70;
+      case TaskCategory.SHOPPING:
+        return Colors.white70;
+    }
+  }
+
 }
