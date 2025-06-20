@@ -35,7 +35,7 @@ TaskNest is a simple and clean task management app built using **Flutter**, **Ge
 ### Prerequisites
 
 - Flutter SDK installed
-- Android/iOS device or emulator
+- Android device or emulator
 
 ### Installation
 
