@@ -42,5 +42,4 @@ TaskNest is a simple and clean task management app built using **Flutter**, **Ge
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/tasknest.git
-cd tasknest
+git clone https://github.com/zapadiya001/TaskNest
