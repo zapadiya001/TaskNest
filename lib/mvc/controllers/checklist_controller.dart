@@ -5,7 +5,8 @@ import 'package:todoapp/services/database_services.dart';
 import 'package:todoapp/services/notification_service.dart';
 
 
-class ChecklistController extends GetxController {
+class
+ChecklistController extends GetxController {
   final DatabaseService _databaseService = DatabaseService();
   final NotificationService _notificationService = NotificationService();
 

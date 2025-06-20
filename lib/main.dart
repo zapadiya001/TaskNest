@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:todoapp/services/notification_service.dart';
 import 'mvc/views/screens/checklist_view.dart';
-import 'mvc/controllers/checklist_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

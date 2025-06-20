@@ -1,16 +1,46 @@
-# todoapp
+# 📱 TaskNest
 
-A new Flutter project.
+TaskNest is a simple and clean task management app built using **Flutter**, **GetX**, and the **MVC architecture**. It supports local task storage using **Sqflite** and provides smart **local notifications** to remind users of their to-dos.
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## ✨ Features
 
-A few resources to get you started if this is your first Flutter project:
+- ✅ Add, edit, and delete tasks
+- 📅 Set due dates and get notified
+- 🔔 Local notification reminders
+- 🧠 Follows MVC structure with GetX for state management
+- 🗂 Data stored locally using SQLite via `sqflite` package
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+---
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 📸 Screenshots
+
+*(Include screenshots here if available)*
+
+---
+
+## 🧱 Tech Stack
+
+- **Flutter** – Cross-platform UI toolkit
+- **GetX** – Lightweight, reactive state management
+- **Sqflite** – Local SQLite database for Flutter
+- **Flutter Local Notifications** – For scheduling local alerts
+- **MVC Architecture** – Proper separation of Model, View, and Controller
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Flutter SDK installed
+- Android/iOS device or emulator
+
+### Installation
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/yourusername/tasknest.git
+cd tasknest
