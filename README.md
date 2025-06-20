@@ -14,12 +14,6 @@ TaskNest is a simple and clean task management app built using **Flutter**, **Ge
 
 ---
 
-## 📸 Screenshots
-
-*(Include screenshots here if available)*
-
----
-
 ## 🧱 Tech Stack
 
 - **Flutter** – Cross-platform UI toolkit
